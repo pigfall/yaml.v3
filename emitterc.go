@@ -162,10 +162,9 @@ func yaml_emitter_emit(emitter *yaml_emitter_t, event *yaml_event_t) bool {
 // Check if we need to accumulate more events before emitting.
 //
 // We accumulate extra
-//  - 1 event for DOCUMENT-START
-//  - 2 events for SEQUENCE-START
-//  - 3 events for MAPPING-START
-//
+//   - 1 event for DOCUMENT-START
+//   - 2 events for SEQUENCE-START
+//   - 3 events for MAPPING-START
 func yaml_emitter_need_more_events(emitter *yaml_emitter_t) bool {
 	if emitter.events_head == len(emitter.events) {
 		return true
@@ -241,7 +240,7 @@ func yaml_emitter_increase_indent(emitter *yaml_emitter_t, flow, indentless bool
 			emitter.indent += 2
 		} else {
 			// Everything else aligns to the chosen indentation.
-			emitter.indent = emitter.best_indent*((emitter.indent+emitter.best_indent)/emitter.best_indent)
+			emitter.indent = emitter.best_indent * ((emitter.indent + emitter.best_indent) / emitter.best_indent)
 		}
 	}
 	return true
@@ -1252,7 +1251,7 @@ func yaml_emitter_analyze_tag(emitter *yaml_emitter_t, tag []byte) bool {
 }
 
 // Check if a scalar is valid.
-func yaml_emitter_analyze_scalar(emitter *yaml_emitter_t, value []byte) bool {
+func yaml_emitter_analyze_scalar(emitter *yaml_emitter_t, value []byte, allowTrailingSpaceInLiteral bool) bool {
 	var (
 		block_indicators   = false
 		flow_indicators    = false
@@ -1402,6 +1401,11 @@ func yaml_emitter_analyze_scalar(emitter *yaml_emitter_t, value []byte) bool {
 	if block_indicators {
 		emitter.scalar_data.block_plain_allowed = false
 	}
+
+	if allowTrailingSpaceInLiteral {
+		emitter.scalar_data.block_allowed = true
+	}
+
 	return true
 }
 
@@ -1443,7 +1447,7 @@ func yaml_emitter_analyze_event(emitter *yaml_emitter_t, event *yaml_event_t) bo
 				return false
 			}
 		}
-		if !yaml_emitter_analyze_scalar(emitter, event.value) {
+		if !yaml_emitter_analyze_scalar(emitter, event.value, event.allow_trailing_space_in_literal) {
 			return false
 		}
 
